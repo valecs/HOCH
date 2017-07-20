@@ -7,24 +7,25 @@ OBJDIR:= ./build
 SHELL = /bin/sh
 
 CFLAGS := -g -O2 -DHAVE_INLINE
-CFLAGS += -I$(HOME)/local/include -I$(CODEROOT)/shared/include
+CFLAGS += -I$(HOME)/toor/include -I$(CODEROOT)/shared/include
 LDFLAGS := -lLinkedList -lFormaldehyde -lCalculus 
 
 ## Use with gcc
-# CC := mpicc
-# WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror #-Wconversion
-# CFLAGS +=-std=c99 -fshort-enums -fno-common
-# CFLAGS += -I/home/vale/toor/include -I$(CODEROOT)/shared/include -DDEBUG -DDEBUG_HEAP
-# CFLAGS += $(WARNINGS)
-# LDFLAGS:=-lgsl -lm -lgslcblas -lgfortran -L/home/vale/toor/lib -L$(CODEROOT)/shared/lib
+export OMPI_CC=gcc-6.2
+CC := mpicc
+WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror #-Wconversion
+CFLAGS +=-std=c99 -fshort-enums -fno-common
+CFLAGS += $(WARNINGS)
+LDFLAGS += -lgsl -lm -lgslcblas -lgfortran -L/home/vale/toor/lib -L$(CODEROOT)/shared/lib
+
 
 # Use for XL
-CC := mpixlc_r
-CFLAGS += -qlanglvl=stdc99
-LDFLAGS += -lgsl -lcblas -lblas -lm -L$(HOME)/cross/lib -L$(CODEROOT)/shared/lib
-LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
-LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
-LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
+# CC := mpixlc_r
+# CFLAGS += -qlanglvl=stdc99
+# LDFLAGS += -lgsl -lcblas -lblas -lm -L$(HOME)/cross/lib -L$(CODEROOT)/shared/lib
+# LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
+# LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
+# LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
 
 HEADERS := $(wildcard $(SRCDIR)/*.h)
 SOURCES := $(wildcard $(SRCDIR)/*.c)
