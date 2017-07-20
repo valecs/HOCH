@@ -5,10 +5,11 @@
 #include <gsl/gsl_blas.h>
 
 #define FORMALDEHYDE_GRADIENT_H 1e-4
+#define EXTGETPOT getpot_
 
 /*TODO: eliminate asserts*/
 
-extern void getpot(const int * natom, const double xmass[36], double xx[3][36], double * v, double * v1, double * v2, double * s);
+extern void EXTGETPOT(const int * natom, const double xmass[36], double xx[3][36], double * v, double * v1, double * v2, double * s);
 
 //package the whole thing together
 const potential potential_hoch_bare_nop = {
@@ -70,7 +71,7 @@ double potential_formaldehyde(const gsl_vector * r){
     }
   }
   
-  getpot(&natom, xmass, xx, &v, &v1, &v2, &s);
+  EXTGETPOT(&natom, xmass, xx, &v, &v1, &v2, &s);
 
   return v;
 }
@@ -134,7 +135,7 @@ double potential_formaldehyde_nop(const gsl_vector * r){
     }
   }
   
-  getpot(&natom, xmass, xx, &v, &v1, &v2, &s);
+  EXTGETPOT(&natom, xmass, xx, &v, &v1, &v2, &s);
 
   return v;
 }

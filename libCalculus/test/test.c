@@ -1,7 +1,7 @@
 #include "../src/gradient.h"
 #include "../src/hessian.h"
 
-#include <potentials.h>
+#include "../src/potentials.h"
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_errno.h>

@@ -1,6 +1,6 @@
 #include "gradient.h"
 
-#include <potentials.h>
+#include "potentials.h"
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_blas.h>

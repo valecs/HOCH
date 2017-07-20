@@ -5,27 +5,27 @@ TSTDIR=./test
 FSRCDIR=$(SRCDIR)/fortran
 
 LIBRARY := Formaldehyde
-
-
 SHELL = /bin/sh
-#CC := gcc
-#FC := gfortran
+CC := gcc-6.2
+FC := gfortran-6.2
 
-CC := mpixlc_r
-FC := mpixlf77_r
+#CC := mpixlc_r
+#FC := mpixlf77_r
 
 FFLAGS := -O3
 
 WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion
 CFLAGS := -g -O2 -DHAVE_INLINE
-CFLAGS += -I$(HOME)/local/include -I$(CODEROOT)/shared/include
-#CFLAGS += -std=c99 -fshort-enums -fno-common
-#CFLAGS += $(WARNINGS)
+CFLAGS += -I$(HOME)/toor/include -I$(CODEROOT)/shared/include
+CFLAGS += -std=c99 -fshort-enums -fno-common
+CFLAGS += $(WARNINGS)
 
-LDFLAGS := -lgsl -lcblas -lblas -lm -L$(HOME)/cross/lib -L$(CODEROOT)/shared/lib
-LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
-LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
-LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
+LDFLAGS := -lgsl -lgslcblas -lblas -lm
+LDFLAGS += -L$(HOME)/toor/lib
+#LDFLAGS += -L$(HOME)/cross/lib -L$(CODEROOT)/shared/lib
+#LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
+#LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
+#LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
 #LDFLAGS += -s
 
 LIBNAME := lib$(LIBRARY).a
@@ -57,7 +57,7 @@ $(LIBRARY): $(FOBJECTS) $(OBJECTS) $(HEADERS)
 cobjects: $(OBJECTS)
 
 test: $(LIBRARY) $(TOBJECTS)
-	$(CC) $(TOBJECTS) -L./ -l$(LIBRARY) -lCalculus $(LDFLAGS) -o $(TSTDIR)/$@
+	$(CC) $(TOBJECTS) -L./ -L$(CODEROOT)/shared/lib -l$(LIBRARY) -lCalculus $(LDFLAGS) -o $(TSTDIR)/$@
 	./$(TSTDIR)/$@ > ./$(TSTDIR)/$@.out
 
 clean:

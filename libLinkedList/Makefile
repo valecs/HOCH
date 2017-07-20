@@ -6,15 +6,13 @@ TSTDIR=./test
 LIBRARY := LinkedList
 
 SHELL = /bin/sh
-#CC := gcc
-CC := mpixlc_r
+CC := gcc-6.2
+#CC := mpixlc_r
 
 WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion
-CFLAGS :=  -g -O2 -DHAVE_INLINE -I$(HOME)/local/include -I$(CODEROOT)/shared/include
-CFLAGS += -I/soft/libraries/alcf/current/gcc/CBLAS/include/
-#CFLAGS += -std=c99 -fshort-enums -fno-common
-#CFLAGS += $(WARNINGS)
-
+CFLAGS :=  -g -O2
+CFLAGS += -std=c99 -fshort-enums -fno-common
+CFLAGS += $(WARNINGS)
 
 SRCDIR:= ./src
 OBJDIR:= ./build
