@@ -1,0 +1,44 @@
+libFormaldehyde: library for interacting with the potential provided by Joel Bowman.
+
+#include <formaldehydePotential.h>
+exports:
+    const potential * const potential_hoch
+
+which is a pointer to a:
+    typedef struct potential {
+      energy    v;
+      gradient  g;
+    } potential;
+
+link with: -lFormaldehyde -lCalculus -lgfortran -lgslcblas (or some other BLAS implementation)
+
+#include <formaldehydeProperties.h>
+exports a collection of physical properties about the components of formaldehyde:
+    const struct offset_t formaldehydeOffset;
+    const struct mass_t formaldehydeMass;
+
+of types:
+    struct offset_t{
+      const size_t H1;  const size_t O;  const size_t C;  const size_t H2;
+    };
+
+    struct mass_t{
+      const double H1;  const double O;  const double C;  const double H2;
+    };
+
+as well as:
+    const double formaldehydeMassArray[4];
+    const size_t formaldehydeOffsetArray[4];
+
+    const size_t formaldehydeNumDimensions;
+    const int formaldehydeNumCenters;
+    const double formaldehydeMassTotal;
+
+which have self explanatory names.
+
+#import <formaldehydeRoaming>
+
+exports
+    int isRoaming(const gsl_vector * r);
+
+which returns 1 if the system described by the configuration space vector r is roaming and 0 otherwise.
