@@ -118,9 +118,12 @@ void brittleLoad2(struct pointsHolder * points, struct params p){
     return;
   }
 
-  // move B to C; roamer inserted at B
-  points->C = points->B; points->B = NULL;
-
+  // swap B & C; roamer inserted at B
+  {
+    gsl_vector * t = points->C;
+    points->C = points->B; points->B = t;
+  }
+  
   if (snprintf(fname, (size_t) BUF, "%s/data/HOCH/manifest/varel/%05d.roamers",
 	       p.stratt_root, p.E0) >= BUF ){
     msg("FAILURE_WRITE_TRUNCATE");
