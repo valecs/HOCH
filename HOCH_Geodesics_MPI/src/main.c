@@ -20,6 +20,7 @@
 #include <gsl/gsl_vector.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <string.h>
 
 #define STRATT_ROOT "STRATT_ROOT"
 #define HACM 219474.6313705
@@ -53,21 +54,27 @@ static FILE * printVectorM_stream = NULL;
 */
 int main(int argc, char ** argv){
   p.stratt_root = getenv(STRATT_ROOT);
-  p.manifestID = getTaskID(argc, argv);
-
+  //p.manifestID = getTaskID(argc, argv);
+      
   if (!p.stratt_root){
-    fprintf(stderr, "Variable, " STRATT_ROOT ", not found; exiting!\n");
+    msg("Variable, " STRATT_ROOT ", not found; exiting!\n");
     exit(1);
   }
 
   {
+    char loadFile[BUF] = {0};
     int c = 1;
     opterr = 0;  //since we do our own error-handling
-    const char optstring[]="+e:hDRAF:";
+    const char optstring[]="+e:hDRAF:G";
     while (-1 != (c = getopt(argc, argv, optstring))){
       switch (c){
       case 'e':
-	p.E0 = atoi(optarg);
+	errno = 0;
+	p.E0 = strtol(optarg, (char **) (NULL), 10);
+	if (errno){
+	  msg("Cannot read energy; exiting!\n");
+	  exit(1);
+	}
 	break;
       case 'D':
 	p.kind = direct;
@@ -79,7 +86,28 @@ int main(int argc, char ** argv){
 	p.kind = radical;
 	break;
       case 'F':
-	getTaskFromFile(optarg);
+	strncpy(loadFile, optarg, BUF);
+	if ('\0' != loadFile[BUF-1]){
+	  msg(optarg);
+	  msg("File argument longer than BUF; exiting!");
+	  exit(1);
+	}
+	break;
+      case 'G':
+	{
+	  char * envvar = getenv("SGE_TASK_ID");
+	  if (!envvar){
+	    msg("Variable, SGE_TASK_ID, not found; exiting!\n");
+	    exit(1);
+	  }
+	  
+	  errno = 0;
+	  p.manifestID = strtol(envvar, (char **) (NULL), 10);
+	  if (errno){
+	    msg("Cannot read SGE_TASK_ID; exiting!\n");
+	    exit(1);
+	  }
+	}
 	break;
       case 'h':
 	usage();
@@ -94,6 +122,13 @@ int main(int argc, char ** argv){
 	exit(1);
 	break;
       }
+    }
+    if (loadFile[0]){
+      /*
+	getTaskFromFile requires that p.manifestID be set so wait
+	until other options are processed.
+      */
+      getTaskFromFile(loadFile);
     }
   }
   
@@ -145,8 +180,11 @@ int main(int argc, char ** argv){
 }
 
 void usage(void){
-  fprintf(stderr, "HOCH_Geodesics_MPI -t n-m -e EL {-D | -R | -A} [-F TASKFILE]\n");
+  fprintf(stderr, "HOCH_Geodesics_MPI -e EL {-G | -t n-m} {-D | -R | -A} [-F TASKFILE]\n");
   fprintf(stderr, "  Computes a geodesic at landcape energy EL on the HOCH PES.\n");
+  fprintf(stderr, "\n");
+  fprintf(stderr, "  With -t, will opperate in MPI mode.\n");
+  fprintf(stderr, "  With -G, will opperate in Grid mode and read tasks via $SGE_TASK_ID.\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "Parameters:\n");
   fprintf(stderr, "  EL : energy in wavenumbers.\n");
@@ -238,6 +276,7 @@ void writeRoute(llist * route){
 
   printVectorM_stream = f;
   map(route, printVectorM);
+  printVectorM_stream = NULL;
   fclose(f);
 }
 
@@ -245,6 +284,7 @@ void writeRoute(llist * route){
   prints a vector on printVectorM_stream; use like:
     printVectorM_stream = f;
     map(route, printVectorM);
+    printVectorM_stream = NULL;
 */
 void * printVectorM(void * e){
   gsl_vector * v = (gsl_vector *)e;

@@ -24,6 +24,7 @@ int getTaskID(int argc, char ** argv){
   int n = 0, m = 0;
 
   int c = -1, s = 1;
+  optind = 1;
   opterr = 0;  //since we do our own error-handling
   const char optstring[]="t:";
   while (s && (-1 != (c = getopt(argc, argv, optstring)))){
