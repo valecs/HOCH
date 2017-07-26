@@ -2,6 +2,7 @@ EXECUTABLE := HOCH_Geodesics_MPI
 
 CODEROOT := ..
 SRCDIR:= ./src
+TSTDIR:= ./test
 OBJDIR:= ./build
 
 SHELL = /bin/sh
@@ -18,7 +19,6 @@ CFLAGS +=-std=c99 -fshort-enums -fno-common
 CFLAGS += $(WARNINGS)
 LDFLAGS += -lgsl -lm -lgslcblas -lgfortran -L/home/vale/toor/lib -L$(CODEROOT)/shared/lib
 
-
 # Use for XL
 # CC := mpixlc_r
 # CFLAGS += -qlanglvl=stdc99
@@ -30,10 +30,15 @@ LDFLAGS += -lgsl -lm -lgslcblas -lgfortran -L/home/vale/toor/lib -L$(CODEROOT)/s
 HEADERS := $(wildcard $(SRCDIR)/*.h)
 SOURCES := $(wildcard $(SRCDIR)/*.c)
 OBJECTS := $(patsubst $(SRCDIR)%.c,$(OBJDIR)%.o, $(SOURCES))
+TSOURCE := $(wildcard $(TSTDIR)/*.c)
+TOBJECT := $(patsubst $(TSTDIR)%.c,$(TSTDIR)%.o, $(TSOURCE))
 
 all: $(SOURCES) $(HEADERS) $(EXECUTABLE)
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+$(TSTDIR)/%.o : $(TSTDIR)/%.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 $(EXECUTABLE): $(OBJECTS) $(HEADERS)
@@ -48,3 +53,6 @@ install: $(EXECUTABLE)
 
 remove:
 	rm  $(CODEROOT)/shared/bin/$(EXECUTABLE)
+
+test: $(TOBJECT)
+	$(CC) $(TOBJECT) $(LDFLAGS) -o $(TSTDIR)/$@

@@ -1,17 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "mpigrid.h"
 
 #define BUF 7
 
 void msg(const char * s);
 void getTaskFromFile(const char * fname);
+int testFileLoad(int argc, char ** argv);
+void printArgs(int argc, char ** argv);
 
 int manifestID = -1;
 
 int main(int argc, char ** argv){
+  printArgs(argc, argv);
+  printf("Got id=%d\n", getTaskID(argc, argv));
+  printArgs(argc, argv);
+  return testFileLoad(argc, argv);
+}
+
+void printArgs(int argc, char ** argv){
+  for (int i = 0; i < argc; i++){
+    printf("%d: %s\n", i, argv[i]);
+  }
+}
+
+void msg(const char * s){
+  fprintf(stderr, "%s\n", s);
+}
+
+int testFileLoad(int argc, char ** argv){
   if (argc != 3){
     msg("Require 2 arguments.");
-    exit(1);
+    return 1;
   }
 
   manifestID = atoi(argv[2]);
@@ -22,10 +42,6 @@ int main(int argc, char ** argv){
   printf("manifestID = %05d\n", manifestID);
 
   return 0;
-}
-
-void msg(const char * s){
-  fprintf(stderr, "%s\n", s);
 }
 
 void getTaskFromFile(const char * fname){
