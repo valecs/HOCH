@@ -19,7 +19,7 @@ int manifestID = -1;
 int main(int argc, char ** argv){
   printArgs(argc, argv);
   
-  manifestID = getTaskID(argc, argv);
+  manifestID = getTaskID(&argc, argv);
   printf("---Got manifestID = %d---\n", manifestID);
   printArgs(argc, argv);
   
@@ -27,6 +27,7 @@ int main(int argc, char ** argv){
   processOptions(argc, argv);
   msg("---Final option run---");
   printArgs(argc, argv);
+  
   return 0;
 }
 

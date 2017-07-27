@@ -49,12 +49,9 @@ void * printVectorM(void * e);
 /* only touched by printVectorM*/
 static FILE * printVectorM_stream = NULL;
 
-/*
-  FIXME: Need a flag to also get ID from a file or a list.
-*/
 int main(int argc, char ** argv){
   p.stratt_root = getenv(STRATT_ROOT);
-  //p.manifestID = getTaskID(argc, argv);
+  p.manifestID = getTaskID(&argc, argv);
       
   if (!p.stratt_root){
     msg("Variable, " STRATT_ROOT ", not found; exiting!\n");

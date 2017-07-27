@@ -1,36 +1,39 @@
 #include "mpigrid.h"
 
 #include <mpi.h>
+#include <getopt.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <getopt.h>
 
-#define BUF 128
-
-/* A wrapper to elide the return value */
 void MPI_Finalize_nr(void);
-void swap(char **, int a, int b);
-  
+
 /*
   Parses command line arguments and returns a task ID based on the MPI
   rank. Expects an argument of the form -t n-m to sepcify tasks to be
   completed.  Inits MPI functions and arranges for MPI_Finalize to be
   called at exit.
 
-  Idea: take a [-w] argument to redirect stdout and stderr to the
-  specified working directories.
-*/
-int getTaskID(int argc, char ** argv){
-  int n = 0, m = 0;
+  If a '-t' option is present, getTaskID will shift the contents of
+  argv and change the count in argc to hide the elements from future
+  invocations of getopt(3).
 
-  int c = -1, s = 1;
-  opterr = 0;  //since we do our own error-handling
-  const char optstring[]="-t:";
-  while (s && (-1 != (c = getopt(argc, argv, optstring)))){
+  If a '-t' option is present and the range cannot be parsed, the
+  program will emit an error and terminate.
+
+  If there are more tasks than ranks, rank 0 will emit a warning. If
+  there are more ranks than tasks, the superflous ranks will be killed
+  silently.
+*/
+int getTaskID(int * argc, char ** argv){
+  int n = 0, m = 0; /* Assign tasks on [n,m] */
+
+  int c = -1, s = 1, optind_prev = optind;
+  opterr = 0;  /* since we do our own error-handling */
+  const char optstring[]="-t:"; /* prevent permuting argv via intiail '-' */
+  while (s && (-1 != (c = getopt(*argc, argv, optstring)))){
     switch (c){
     case 't':
-      fprintf(stderr, "MPIGRID: saw %c==%d\n", c, c);
       /*
 	Short-circuit evaluation ensures n & m are both set prior to
 	comparison.
@@ -40,39 +43,30 @@ int getTaskID(int argc, char ** argv){
 	fprintf(stderr, "Bad range specification. Exiting!\n");
 	exit(c);
       }
+      s = 0; /* Stop after this round */
+
+      /* Hide these elements from future invocations of getopt(3). */
+      memmove(&argv[optind_prev],
+	      &argv[optind],
+	      (*argc - optind) * sizeof(char *));
+      *argc -= optind - optind_prev;
       
-      /* Hide these options from future invocations of getopt(3). */
-      /*
-	I think what needs to happen here is for the arg(s) to be
-	permuted to then *end* of argv.
-
-	int optind; // index of the next element to be processed in argv
-	char * optarg; // pointer to argument string
-
-      */
-      argv[optind-1][0] = '\0';
-      swap(argv, optind-1, argc-1);
-      if (&optarg[0] != &argv[optind-1][2]){// if there was a space between args
-	argv[optind-2][0] = '\0';
-	swap(argv, optind-2, argc-2);
-      }
-
-      s = 0;
       break;
     default:
-      /* don't want to interfere with others' options */
-      fprintf(stderr, "MPIGRID: saw %c==%d\n", c, c);
+      /* don't interfere with others' options */
       break;
     }
+    optind_prev = optind;
   }
-
-  // Reset optind for subsequent calls to getopt.
-  optind = 1;
   
+  /* Reset optind for subsequent calls to getopt. */
+  optind = 1;
+
+  /* Setup the MPI enviroment */
   MPI_Init(NULL, NULL);
   
   if (atexit(&MPI_Finalize_nr)){
-    fprintf(stderr, "Failed to register exit handler! This is probably a problem.\n");
+    fprintf(stderr, "Failed to register MPI exit handler! This is probably a problem.\n");
   }
 
   int rank = 0;
@@ -96,12 +90,10 @@ int getTaskID(int argc, char ** argv){
   return taskID;
 }
 
-void swap(char ** argv, int a, int b){
-  char * t = argv[a];
-  argv[a] = argv[b];
-  argv[b] = t;
-}
-
+/*
+  A wrapper around MPI_Finalize with the correct type signature for
+  registration via atexit(3).
+*/
 void MPI_Finalize_nr(void){
   MPI_Finalize();
 }
