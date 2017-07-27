@@ -24,12 +24,12 @@ int getTaskID(int argc, char ** argv){
   int n = 0, m = 0;
 
   int c = -1, s = 1;
-  optind = 1;
   opterr = 0;  //since we do our own error-handling
-  const char optstring[]="t:";
+  const char optstring[]="-t:";
   while (s && (-1 != (c = getopt(argc, argv, optstring)))){
     switch (c){
     case 't':
+      fprintf(stderr, "MPIGRID: saw %c\n", c);
       /*
 	Short-circuit evaluation ensures n & m are both set prior to
 	comparison.
@@ -41,7 +41,11 @@ int getTaskID(int argc, char ** argv){
       }
       
       /* Hide these options from future invocations of getopt(3). */
-      argv[optind-1][0] = '\0';      
+      /*
+	I think what needs to happen here is for the arg(s) to be
+	permuted to then *end* of argv.
+      */
+      argv[optind-1][0] = '\0';
       if (&optarg[0] != &argv[optind-1][2]){// if there was a space between args
 	argv[optind-2][0] = '\0';
       }
@@ -50,6 +54,7 @@ int getTaskID(int argc, char ** argv){
       break;
     default:
       /* don't want to interfere with others' options */
+      fprintf(stderr, "MPIGRID: saw %c\n", c);
       break;
     }
   }
