@@ -10,7 +10,8 @@
 
 /* A wrapper to elide the return value */
 void MPI_Finalize_nr(void);
-
+void swap(char **, int a, int b);
+  
 /*
   Parses command line arguments and returns a task ID based on the MPI
   rank. Expects an argument of the form -t n-m to sepcify tasks to be
@@ -29,7 +30,7 @@ int getTaskID(int argc, char ** argv){
   while (s && (-1 != (c = getopt(argc, argv, optstring)))){
     switch (c){
     case 't':
-      fprintf(stderr, "MPIGRID: saw %c\n", c);
+      fprintf(stderr, "MPIGRID: saw %c==%d\n", c, c);
       /*
 	Short-circuit evaluation ensures n & m are both set prior to
 	comparison.
@@ -44,17 +45,23 @@ int getTaskID(int argc, char ** argv){
       /*
 	I think what needs to happen here is for the arg(s) to be
 	permuted to then *end* of argv.
+
+	int optind; // index of the next element to be processed in argv
+	char * optarg; // pointer to argument string
+
       */
       argv[optind-1][0] = '\0';
+      swap(argv, optind-1, argc-1);
       if (&optarg[0] != &argv[optind-1][2]){// if there was a space between args
 	argv[optind-2][0] = '\0';
+	swap(argv, optind-2, argc-2);
       }
 
       s = 0;
       break;
     default:
       /* don't want to interfere with others' options */
-      fprintf(stderr, "MPIGRID: saw %c\n", c);
+      fprintf(stderr, "MPIGRID: saw %c==%d\n", c, c);
       break;
     }
   }
@@ -87,6 +94,12 @@ int getTaskID(int argc, char ** argv){
   }
   
   return taskID;
+}
+
+void swap(char ** argv, int a, int b){
+  char * t = argv[a];
+  argv[a] = argv[b];
+  argv[b] = t;
 }
 
 void MPI_Finalize_nr(void){
