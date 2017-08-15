@@ -5,7 +5,7 @@ SRCDIR:= ./src
 OBJDIR:= ./build
 
 SHELL = /bin/sh
-CC := gcc-6.2
+CC := gcc
 PGLINKER=pgcc
 
 WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror

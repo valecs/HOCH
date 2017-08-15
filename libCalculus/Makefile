@@ -7,7 +7,7 @@ LIBRARY := Calculus
 TSOURCES := $(TSTDIR)/test.c
 
 SHELL = /bin/sh
-CC := gcc-6.2
+CC := gcc
 #CC := mpixlc_r
 
 CFLAGS := -g -O2 -DHAVE_INLINE

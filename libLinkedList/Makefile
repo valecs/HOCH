@@ -6,7 +6,7 @@ TSTDIR=./test
 LIBRARY := LinkedList
 
 SHELL = /bin/sh
-CC := gcc-6.2
+CC := gcc
 #CC := mpixlc_r
 
 WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion

@@ -12,7 +12,6 @@ CFLAGS += -I$(HOME)/toor/include -I$(CODEROOT)/shared/include
 LDFLAGS := -lLinkedList -lFormaldehyde -lCalculus 
 
 ## Use with gcc
-export OMPI_CC=gcc-6.2
 CC := mpicc
 WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror #-Wconversion
 CFLAGS +=-std=c99 -fshort-enums -fno-common

@@ -6,8 +6,8 @@ FSRCDIR=$(SRCDIR)/fortran
 
 LIBRARY := Formaldehyde
 SHELL = /bin/sh
-CC := gcc-6.2
-FC := gfortran-6.2
+CC := gcc
+FC := gfortran
 
 #CC := mpixlc_r
 #FC := mpixlf77_r
