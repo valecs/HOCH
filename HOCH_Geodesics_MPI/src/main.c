@@ -190,8 +190,8 @@ void usage(void){
   fprintf(stderr, "  -D Direct\n");
   fprintf(stderr, "  -R Roaming\n");
   fprintf(stderr, "  -A rAdical\n");
-  fprintf(stderr, "The optional flag, -F causes jobs to be read from TASKFILE. -t is\n");
-  fprintf(stderr, "  still required.\n");
+  fprintf(stderr, "The optional flag, -F causes jobs to be read from TASKFILE. -t or -G\n");
+  fprintf(stderr, "  are still required.\n");
   fprintf(stderr, "Requres the variable " STRATT_ROOT " be set.\n");
 }
 
