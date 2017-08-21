@@ -49,6 +49,14 @@ void * printVectorM(void * e);
 /* only touched by printVectorM*/
 static FILE * printVectorM_stream = NULL;
 
+/* List of possible env vars to look-up*/
+const char * envlist[] = {
+  "SGE_TASK_ID",
+  "SLURM_ARRAY_TASK_ID",
+  "TASK_ID",
+  NULL
+};
+
 int main(int argc, char ** argv){
   p.stratt_root = getenv(STRATT_ROOT);
   p.manifestID = getTaskID(&argc, argv);
@@ -91,17 +99,27 @@ int main(int argc, char ** argv){
 	}
 	break;
       case 'G':
-	{
-	  char * envvar = getenv("SGE_TASK_ID");
-	  if (!envvar){
-	    msg("Variable, SGE_TASK_ID, not found; exiting!\n");
-	    exit(1);
-	  }
+	{	  
+	  const char ** v = envlist;
+	  for (; *v; v++){
+	    char * envvar = getenv(*v);
+	    if (!envvar){
+	      continue;
+	    }
 	  
-	  errno = 0;
-	  p.manifestID = strtol(envvar, (char **) (NULL), 10);
-	  if (errno){
-	    msg("Cannot read SGE_TASK_ID; exiting!\n");
+	    errno = 0;
+	    p.manifestID = strtol(envvar, (char **) (NULL), 10);
+	    if (errno){
+	      msg(*v);
+	      msg("Cannot read variable; exiting!");
+	      exit(1);
+	    }
+	    else{
+	      break;
+	    }
+	  }
+	  if (!*v){
+	    msg("No task variables found; exiting!");
 	    exit(1);
 	  }
 	}
@@ -181,7 +199,10 @@ void usage(void){
   fprintf(stderr, "  Computes a geodesic at landcape energy EL on the HOCH PES.\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "  With -t, will opperate in MPI mode.\n");
-  fprintf(stderr, "  With -G, will opperate in Grid mode and read tasks via $SGE_TASK_ID.\n");
+  fprintf(stderr, "  With -G, will opperate in Grid mode and read tasks via one of:\n");
+  for (const char ** v = envlist; *v; v++){
+    fprintf(stderr, "    $%s\n", *v);
+  }
   fprintf(stderr, "\n");
   fprintf(stderr, "Parameters:\n");
   fprintf(stderr, "  EL : energy in wavenumbers.\n");
