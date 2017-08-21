@@ -50,7 +50,7 @@ void * printVectorM(void * e);
 static FILE * printVectorM_stream = NULL;
 
 /* List of possible env vars to look-up*/
-const char * envlist[] = {
+const char * arrayEnvVarList[] = {
   "SGE_TASK_ID",
   "SLURM_ARRAY_TASK_ID",
   "TASK_ID",
@@ -100,7 +100,7 @@ int main(int argc, char ** argv){
 	break;
       case 'G':
 	{	  
-	  const char ** v = envlist;
+	  const char ** v = arrayEnvVarList;
 	  for (; *v; v++){
 	    char * envvar = getenv(*v);
 	    if (!envvar){
@@ -200,7 +200,7 @@ void usage(void){
   fprintf(stderr, "\n");
   fprintf(stderr, "  With -t, will opperate in MPI mode.\n");
   fprintf(stderr, "  With -G, will opperate in Grid mode and read tasks via one of:\n");
-  for (const char ** v = envlist; *v; v++){
+  for (const char ** v = arrayEnvVarList; *v; v++){
     fprintf(stderr, "    $%s\n", *v);
   }
   fprintf(stderr, "\n");
