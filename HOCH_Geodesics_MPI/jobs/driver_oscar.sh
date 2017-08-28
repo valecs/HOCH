@@ -13,12 +13,21 @@ echo "Launching $K, E = $E"
 sleep 2s;
 cd "$OUT"
 
-sbatch --array=1-2%2 --workdir="$OUT" --export=STRATT_ROOT --hint=compute_bound\
-       --job-name "HOCH$E$K" --time 8-0 $@ <<EOF
-#!/bin/sh
+start=5001
+
+for start in 5001
+do
+    export MY_ARRAY_START=$((start -1))
+
+    sbatch --array=1-2 --workdir="$OUT" --hint=compute_bound\
+	   --job-name "HOCH$E$K" --time 8-0 --mem-per-cpu=512 $@ <<EOF
+#!/bin/bash
+SLURM_ARRAY_TASK_ID="\$((SLURM_ARRAY_TASK_ID + MY_ARRAY_START))"
+export SLURM_ARRAY_TASK_ID
 srun $(readlink -f $R/../../shared/bin/HOCH_Geodesics_MPI) -e $E -G -$K
 EOF
-
+    
+done
 ## R.B. Ted jobs did 1-5000 and 25001-30000
 
 cd -
