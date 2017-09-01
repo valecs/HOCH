@@ -48,7 +48,7 @@ int getTaskID(int * argc, char ** argv){
       /* Hide these elements from future invocations of getopt(3). */
       memmove(&argv[optind_prev],
 	      &argv[optind],
-	      (*argc - optind) * sizeof(char *));
+	      (size_t) (*argc - optind) * sizeof(char *));
       *argc -= optind - optind_prev;
       
       break;

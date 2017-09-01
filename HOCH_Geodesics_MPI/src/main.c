@@ -75,7 +75,7 @@ int main(int argc, char ** argv){
       switch (c){
       case 'e':
 	errno = 0;
-	p.E0 = strtol(optarg, (char **) (NULL), 10);
+	p.E0 = (int) strtol(optarg, (char **) (NULL), 10);
 	if (errno){
 	  msg("Cannot read energy; exiting!\n");
 	  exit(1);
@@ -108,7 +108,7 @@ int main(int argc, char ** argv){
 	    }
 	  
 	    errno = 0;
-	    p.manifestID = strtol(envvar, (char **) (NULL), 10);
+	    p.manifestID = (int) strtol(envvar, (char **) (NULL), 10);
 	    if (errno){
 	      msg(*v);
 	      msg("Cannot read variable; exiting!");
