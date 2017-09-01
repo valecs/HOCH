@@ -6,27 +6,30 @@ OBJDIR:= ./build
 
 SHELL = /bin/sh
 
-WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion
 CFLAGS := -g -O2 -DHAVE_INLINE
-CFLAGS += -I$(HOME)/local/include -I$(CODEROOT)/shared/include
-LDFLAGS := -lLinkedList -lFormaldehyde -lCalculus 
+CFLAGS += -I$(HOME)/toor/include -I$(HOME)/local/include -I$(CODEROOT)/shared/include
 
-# Use for GCC
-CC := gcc
-CFLAGS += $(WARNINGS)
-CFLAGS += -std=c99 -fshort-enums -fno-common
-LDFLAGS += -static -lgsl -lcblas -lblas -lgfortran -lm -L$(HOME)/local/lib -L$(CODEROOT)/shared/lib
-LDFLAGS += -L/soft/libraries/alcf/current/gcc/CBLAS/lib/
-LDFLAGS += -L/soft/libraries/alcf/current/gcc/BLAS/lib/
-LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
+WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion
 
-# Use for XL
-# CC := mpixlc_r
-# CFLAGS += -qlanglvl=stdc99
-# LDFLAGS += -lgsl -lcblas -lblas -lm -L$(HOME)/cross/lib -L$(CODEROOT)/shared/lib
-# LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
-# LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
-# LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
+LDFLAGS := -lLinkedList -lFormaldehyde -lCalculus  -lgsl -lm -lgfortran
+LDFLAGS += -L$(CODEROOT)/shared/lib -L$(HOME)/toor/lib
+
+XLKEY := /wrappers/xl
+ifeq ($(XLKEY),$(findstring $(XLKEY), $(PATH)))
+	CC := mpixlc_r
+	CFLAGS += -qlanglvl=stdc99
+	LDFLAGS += -lcblas -lblas
+	LDFLAGS += -L$(HOME)/cross/lib
+	LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
+	LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
+	LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
+	LDFLAGS += -s
+else # Assume GCC or compatible
+	CC := mpicc
+	CFLAGS += -std=c99 -fshort-enums -fno-common
+	CFLAGS += $(WARNINGS)
+	LDFLAGS += -lgslcblas
+endif
 
 
 HEADERS := $(wildcard $(SRCDIR)/*.h)

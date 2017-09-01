@@ -5,7 +5,6 @@
 #include <gsl/gsl_blas.h>
 
 #define FORMALDEHYDE_GRADIENT_H 1e-4
-#define EXTGETPOT getpot_
 
 /*TODO: eliminate asserts*/
 

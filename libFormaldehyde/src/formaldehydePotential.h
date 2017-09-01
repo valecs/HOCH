@@ -1,6 +1,10 @@
 #ifndef FORMALDEHYDE_POTENTIAL_H
 #define FORMALDEHYDE_POTENTIAL_H
 
+#ifndef EXTGETPOT
+#define EXTGETPOT getpot_
+#endif
+
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 

@@ -6,13 +6,19 @@ TSTDIR=./test
 LIBRARY := LinkedList
 
 SHELL = /bin/sh
-CC := gcc
-#CC := mpixlc_r
 
-WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion
 CFLAGS :=  -g -O2
-CFLAGS += -std=c99 -fshort-enums -fno-common
-CFLAGS += $(WARNINGS)
+WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion
+
+XLKEY := /wrappers/xl
+ifeq ($(XLKEY),$(findstring $(XLKEY), $(PATH)))
+	CC := mpixlc_r
+	CFLAGS += -qlanglvl=stdc99
+else # Assume GCC or compatible
+	CC := gcc
+	CFLAGS += -std=c99 -fshort-enums -fno-common
+	CFLAGS += $(WARNINGS)
+endif
 
 SRCDIR:= ./src
 OBJDIR:= ./build

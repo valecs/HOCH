@@ -5,18 +5,32 @@ SRCDIR:= ./src
 OBJDIR:= ./build
 
 SHELL = /bin/sh
-CC := gcc
-PGLINKER=pgcc
 
-WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror
-WARNINGS += -Wconversion -Werror # gcc 4.1.2 still combines -Wconversion and -Wconversion-traditional
-CFLAGS:=-std=c99 -fshort-enums -fno-common -g -DHAVE_INLINE -I/home/vale/toor/include -I$(CODEROOT)/shared/include -DDEBUG_HEAP
-#CFLAGS += -DDEBUG
-CFLAGS += $(WARNINGS)
+CFLAGS := -g -O2 -DHAVE_INLINE
+CFLAGS += -I$(HOME)/toor/include -I$(HOME)/local/include -I$(CODEROOT)/shared/include
 
-LDFLAGS:=-lgsl -lm -lgslcblas -lgfortran -L/home/vale/toor/lib -L$(CODEROOT)/shared/lib
-LDFLAGS += -lFormaldehyde-pgi -lCalculus -lLinkedList -lbstr
-PGLDFLAGS = -L$/share/apps/pgi/linux86-64/11.4/lib -lpgf90 -lpgf90_rpm1 -lpgf902 -lpgf90rtl -lpgftnrtl -lrt
+WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion
+
+LDFLAGS := -lLinkedList -lFormaldehyde -lCalculus  -lgsl -lm -lgfortran
+LDFLAGS += -L$(CODEROOT)/shared/lib -L$(HOME)/toor/lib
+
+XLKEY := /wrappers/xl
+ifeq ($(XLKEY),$(findstring $(XLKEY), $(PATH)))
+	CC := mpixlc_r
+	CFLAGS += -qlanglvl=stdc99
+	LDFLAGS += -lcblas -lblas
+	LDFLAGS += -L$(HOME)/cross/lib
+	LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
+	LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
+	LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
+	LDFLAGS += -s
+else # Assume GCC or compatible
+	CC := mpicc
+	CFLAGS += -std=c99 -fshort-enums -fno-common
+	CFLAGS += $(WARNINGS)
+	LDFLAGS += -lgslcblas
+endif
+
 
 HEADERS := $(wildcard $(SRCDIR)/*.h)
 SOURCES := $(wildcard $(SRCDIR)/*.c)
@@ -28,8 +42,7 @@ $(OBJDIR)/%.o : $(SRCDIR)/%.c
 	$(CC) -c $(CFLAGS) -O2 $< -o $@
 
 $(EXECUTABLE): $(OBJECTS) $(HEADERS)
-	$(PGLINKER) $(OBJECTS) $(LDFLAGS) $(PGLDFLAGS) -o $@
-#	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 
 clean:
 	rm $(EXECUTABLE) || true

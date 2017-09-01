@@ -7,22 +7,30 @@ LIBRARY := Calculus
 TSOURCES := $(TSTDIR)/test.c
 
 SHELL = /bin/sh
-CC := gcc
-#CC := mpixlc_r
 
 CFLAGS := -g -O2 -DHAVE_INLINE
+CFLAGS += -I$(HOME)/toor/include -I$(HOME)/local/include -I$(CODEROOT)/shared/include
+
 WARNINGS := -pedantic -Wall -W -Wmissing-prototypes -Wstrict-prototypes -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Werror -Wuninitialized -Wconversion
-CFLAGS += -I$(HOME)/toor/include -I$(CODEROOT)/shared/include
-CFLAGS += -std=c99 -fshort-enums -fno-common
-CFLAGS += $(WARNINGS)
 
 LDFLAGS := -lgsl -lgslcblas -lblas -lm
-LDFLAGS += -L$(HOME)/toor/lib
-# LDFLAGS += -L$(HOME)/cross/lib -L$(CODEROOT)/shared/lib
-# LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
-# LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
-# LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
-# LDFLAGS += -s
+LDFLAGS += -L$(CODEROOT)/shared/lib -L$(HOME)/toor/lib
+
+XLKEY := /wrappers/xl
+ifeq ($(XLKEY),$(findstring $(XLKEY), $(PATH)))
+	CC := mpixlc_r
+	CFLAGS += -qlanglvl=stdc99
+	LDFLAGS += -L$(HOME)/cross/lib
+	LDFLAGS += -L/soft/libraries/alcf/current/xl/CBLAS/lib
+	LDFLAGS += -L/soft/libraries/alcf/current/xl/BLAS/lib
+	LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
+	LDFLAGS += -s
+else # Assume GCC or compatible
+	CC := gcc
+	CFLAGS += -std=c99 -fshort-enums -fno-common
+	CFLAGS += $(WARNINGS)
+endif
+
 
 LIBNAME := lib$(LIBRARY).a
 
