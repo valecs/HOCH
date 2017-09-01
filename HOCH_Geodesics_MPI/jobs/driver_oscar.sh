@@ -8,18 +8,17 @@ readonly K="$2"
 shift 2
 
 readonly OUT="$R/$E/slurm"
-
+ 
 echo "Launching $K, E = $E"
 sleep 2s;
 cd "$OUT"
 
-start=5001
 
 for start in 5001
 do
     export MY_ARRAY_START=$((start -1))
 
-    sbatch --array=1-2 --workdir="$OUT" --hint=compute_bound\
+    sbatch --array=1-1000 --workdir="$OUT" --hint=compute_bound\
 	   --job-name "HOCH$E$K" --time 8-0 --mem-per-cpu=512 $@ <<EOF
 #!/bin/bash
 SLURM_ARRAY_TASK_ID="\$((SLURM_ARRAY_TASK_ID + MY_ARRAY_START))"
