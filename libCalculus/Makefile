@@ -26,7 +26,7 @@ ifeq ($(XLKEY),$(findstring $(XLKEY), $(PATH)))
 	LDFLAGS += -L/soft/apps/ibmcmp-feb2013/xlf/bg/14.1/bglib64 -lxlopt -lxl -lxlf90_r -lxlfmath
 	LDFLAGS += -s
 else # Assume GCC or compatible
-	CC := gcc
+	CC := mpicc
 	CFLAGS += -std=c99 -fshort-enums -fno-common
 	CFLAGS += $(WARNINGS)
 endif

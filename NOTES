@@ -1,0 +1,7 @@
+* In case you're on an ancient machine with old versions of gcc, you
+  can direct mpicc to use a newer one with:
+
+  % make OMPI_CC=gcc-6.2 FC=gfortran-6.2
+
+  As shown above, a binary-compatible fortran comilier will need to be
+  specified too.
