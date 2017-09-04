@@ -1,34 +1,48 @@
-ALL := libCalculus libLinkedList libFormaldehyde
-ALL += HOCH_MolecularDynamics_MPI HOCH_MicroCanonical HOCH_Geodesics_MPI
+LIBS  := libCalculus libLinkedList libFormaldehyde
+EXECS := HOCH_MolecularDynamics_MPI HOCH_MicroCanonical HOCH_Geodesics_MPI
 
 all: libs execs
 
-.PHONY: all execs libs clean remove $(ALL)
+.PHONY: all execs libs clean remove
 
-execs: HOCH_Geodesics_MPI HOCH_MicroCanonical HOCH_MolecularDynamics_MPI
+execs: $(EXECS)
 
-libs: libFormaldehyde libLinkedList libCalculus
+libs: $(LIBS)
 
-HOCH_Geodesics_MPI: libLinkedList libFormaldehyde
-	$(MAKE) -C $@ install
+HOCH_Geodesics_MPI: shared/bin/HOCH_Geodesics_MPI
 
-HOCH_MicroCanonical: libLinkedList libFormaldehyde
-	$(MAKE) -C $@ install
+HOCH_MicroCanonical: shared/bin/HOCH_MicroCanonical
 
-HOCH_MolecularDynamics_MPI: libLinkedList libFormaldehyde
-	$(MAKE) -C $@ install
+HOCH_MolecularDynamics_MPI: shared/bin/HOCH_MolecularDynamics_MPI
 
-libFormaldehyde: libCalculus
-	$(MAKE) -C $@ install
+libFormaldehyde: shared/lib/libFormaldehyde.a
 
-libLinkedList:
-	$(MAKE) -C $@ install
+libLinkedList: shared/lib/libLinkedList.a
 
-libCalculus:
-	$(MAKE) -C $@ install
+libCalculus: shared/lib/libCalculus.a
+
+shared/lib/libCalculus.a:
+	$(MAKE) -C $(basename $(notdir $@)) install
+
+shared/lib/libFormaldehyde.a: libCalculus
+	$(MAKE) -C $(basename $(notdir $@)) install
+
+shared/lib/libLinkedList.a:
+	$(MAKE) -C $(basename $(notdir $@)) install
+
+shared/bin/HOCH_Geodesics_MPI: libLinkedList libFormaldehyde
+	$(MAKE) -C $(notdir $@) install
+
+shared/bin/HOCH_MicroCanonical: libLinkedList libFormaldehyde
+	$(MAKE) -C $(notdir $@) install
+
+shared/bin/HOCH_MolecularDynamics_MPI: libLinkedList libFormaldehyde
+	$(MAKE) -C $(notdir $@) install
 
 clean:
-	$(foreach dep, $(ALL), $(MAKE) -C $(dep) clean;)
+	$(foreach dep, $(LIBS),  $(MAKE) -C $(dep) clean;)
+	$(foreach dep, $(EXECS), $(MAKE) -C $(dep) clean;)
 
 remove:
-	$(foreach dep, $(ALL), $(MAKE) -C $(dep) remove || true;)
+	$(foreach dep, $(LIBS),  $(MAKE) -C $(dep) remove || true;)
+	$(foreach dep, $(EXECS), $(MAKE) -C $(dep) remove || true;)
