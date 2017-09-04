@@ -1,6 +1,6 @@
 * You might get started with a:
   
-  % y | make remove ; make clean; make
+  % yes | make remove ; make clean; make
 
 * In case you're on an ancient machine with old versions of gcc, you
   can direct mpicc to use a newer one with:
