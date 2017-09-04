@@ -3,7 +3,7 @@
 
 #include <gsl/gsl_vector.h>
 #include <stdbool.h>
-#include "kinds.h"
+#include "main.h"
 
 void brittleLoad2(struct pointsHolder * points, struct params p);
 

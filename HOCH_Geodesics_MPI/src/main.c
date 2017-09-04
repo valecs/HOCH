@@ -13,6 +13,7 @@
 */
 
 #include "mpigrid.h"
+#include "main.h"
 #include "kinds.h"
 
 #include <formaldehydeProperties.h>
@@ -42,8 +43,6 @@ void writePath(FILE * s, llist * p);
 void * printVectorM(void * e);
 void getTaskFromFile(const char * fname);
 
-const char * k2s(geodesicKind k);
-char k2c(geodesicKind k);
 void msg(const char * s);
 void * printVectorM(void * e);
 /* only touched by printVectorM*/
@@ -308,48 +307,4 @@ void * printVectorM(void * e){
   gsl_vector * v = (gsl_vector *)e;
   gsl_vector_fprintf(printVectorM_stream, v, "%#22.16g");
   return NULL;
-}
-
-const char * k2s(geodesicKind k){
-  static char s[BUF];
-  
-  switch (k){
-  case direct:
-    sprintf(s, "direct");
-    break;
-  case roaming:
-    sprintf(s, "roaming");
-    break;
-  case radical:
-    sprintf(s, "radical");
-    break;
-  case nothing:
-    sprintf(s, "nothing");
-    break;
-  default:
-    sprintf(s, "error");
-    break;
-  }
-
-  return s;
-}
-
-char k2c(geodesicKind k){
-  switch (k){
-  case direct:
-    return 'D';
-    break;
-  case roaming:
-    return 'R';
-    break;
-  case radical:
-    return 'A';
-    break;
-  case nothing:
-    return 'N';
-    break;
-  default:
-    return '0';
-    break;
-  }
 }
