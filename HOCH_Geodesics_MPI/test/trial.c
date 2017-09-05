@@ -1,3 +1,8 @@
+#include "../src/kinds.h"
+#include "../src/main.h"
+
+#include <ctype.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "mpigrid.h"
@@ -10,94 +15,24 @@
 
 void msg(const char * s);
 void getTaskFromFile(const char * fname);
+void parseTask(char * out);
 int testFileLoad(int argc, char ** argv);
 void printArgs(int argc, char ** argv);
-void processOptions(int argc, char ** argv);
 
 int manifestID = -1;
 
+struct params p = {
+  .manifestID = -1,
+  .kind = nothing,
+  .E0 = -1,
+  .stratt_root = NULL,
+};
+
+
 int main(int argc, char ** argv){
-  printArgs(argc, argv);
-  
-  manifestID = getTaskID(&argc, argv);
-  printf("---Got manifestID = %d---\n", manifestID);
-  printArgs(argc, argv);
-  
-  msg("---Begin option reporting---");
-  processOptions(argc, argv);
-  msg("---Final option run---");
-  printArgs(argc, argv);
+  testFileLoad(argc, argv);
   
   return 0;
-}
-
-void processOptions(int argc, char ** argv){
-  char loadFile[BUF] = {0};
-  int c = 1;
-  opterr = 0;  //since we do our own error-handling
-  const char optstring[]="+e:hF:G";
-  while (-1 != (c = getopt(argc, argv, optstring))){
-    switch (c){
-    case 'e':
-      {
-	errno = 0;
-	int E = strtol(optarg, (char **) (NULL), 10);
-	if (errno){
-	  msg("Failed to read read energy");
-	}
-	else{
-	  fprintf(stderr, "E=%d\n", E);
-	}
-      }
-      break;
-    case 'F':
-      strncpy(loadFile, optarg, BUF);
-      if ('\0' != loadFile[BUF-1]){
-	msg(optarg);
-	msg("File argument longer than BUF; things will break!");
-      }
-      else{
-	msg(loadFile);
-	msg("Read loadname.");
-      }
-      break;
-    case 'G':
-      {
-	char * envvar = getenv("SGE_TASK_ID");
-	if (!envvar){
-	  msg("Variable, SGE_TASK_ID, not found; nothing to do.");
-	  break;
-	}
-	  
-	errno = 0;
-	manifestID = strtol(envvar, (char **) (NULL), 10);
-	if (errno){
-	  msg("Cannot read SGE_TASK_ID.");
-	}
-	else{
-	  fprintf(stderr, "Got manifestID=%d\n", manifestID);
-	}
-      }
-      break;
-    case 'h':
-      msg("Help branch.");
-      break;
-    case '?':
-      msg("Hit ? branch; bad argument.");
-      break;
-    default:
-      fprintf(stderr, "Hit default branch; internal error. c = %o\n", c);
-      break;
-    }
-  }
-  if (loadFile[0]){
-    /*
-      getTaskFromFile requires that p.manifestID be set so wait
-      until other options are processed.
-    */
-    getTaskFromFile(loadFile);
-    fprintf(stderr, "Loaded from file %s and got %d.\n", loadFile, manifestID);
-  }  
 }
 
 void printArgs(int argc, char ** argv){
@@ -110,23 +45,34 @@ void msg(const char * s){
   fprintf(stderr, "%s\n", s);
 }
 
+
 int testFileLoad(int argc, char ** argv){
   if (argc != 3){
     msg("Require 2 arguments.");
     return 1;
   }
 
-  manifestID = atoi(argv[2]);
-  fprintf(stderr, "Got: %d\n", manifestID);
+  p.manifestID = atoi(argv[2]);
+  fprintf(stderr, "Got: %d\n", p.manifestID);
 
   getTaskFromFile(argv[1]);
 
-  printf("manifestID = %05d\n", manifestID);
+  printf("manifestID = %05d\n"
+	 "kind = %s\n"
+	 "energy = %05d\n",
+	 p.manifestID, k2s(p.kind), p.E0);
 
   return 0;
 }
 
+
+/*
+  Set a new manifestID, kind, and energy by reading the manifestID-th
+  line from the file at path fname.  Clearly, this requires that
+  manifestID already be set.
+*/
 void getTaskFromFile(const char * fname){
+  
   FILE * f;
   f = fopen(fname, "r");
   if (!f){
@@ -134,29 +80,137 @@ void getTaskFromFile(const char * fname){
     msg("FAILURE_READ_OPEN");
     exit(1);
   }
-  
+
   char in[BUF];
   char out[BUF];
   int j = 0;
-  int lines = manifestID;
-  while (0 != fread(in, sizeof(char), BUF, f) && lines > 0){
-    for(char * i = &in[0]; i < &in[BUF]; i++){
+  int lines = p.manifestID;
+  while (lines > 0 && 0 != fread(in, sizeof(char), BUF, f)){
+    for(char * i = in; i < in + BUF ; i++){
+      /*
+	if *this* is our line,
+	copy to output buffer
+      */
       if (1 == lines){
 	out[j++] = (*i);
       }
 
       if (j >= BUF){
-	msg("length error");
-	return;
+	msg(fname);
+	msg("Buffer error while reading task.");
+	exit(1);
+	break;
       }
-
+      
+      /*
+	decrement lines on each '\n'
+	if we hit 0, read out that line
+      */
       if ('\n' == (*i) && !--lines){
-	  out[j-1] = '\0';
-	  manifestID = atoi(out);
-	  break;
+	out[j-1] = '\0';
+	parseTask(out);
+	break;
       }
     }
   }
 
   fclose(f);
+}
+
+
+/*
+  Helper-function for getTaskFromFile
+*/
+void parseTask(char * out){
+  const char delim[] = " \t";
+  char * tok;
+
+  if (!(tok = strtok(out, delim))){return;}
+  errno = 0;
+  p.manifestID = (int) strtol(tok, (char **) NULL, 10);
+  if (errno){
+    msg("Cannot parse ID; exiting!\n");
+    exit(1);
+  }
+	  
+  if (!(tok = strtok(NULL, delim))){return;}
+  p.kind = c2k(tok[0]);
+
+  if (!(tok = strtok(NULL, delim))){return;}
+  errno = 0;
+  p.E0 = (int) strtol(tok, (char **) NULL, 10);
+  if (errno){
+    msg("Cannot parse energy; exiting!\n");
+    exit(1);
+  }
+}
+
+/*
+  The memory returned is static and should not be freed
+*/
+const char * k2s(geodesicKind k){
+  static char s[BUF];
+  
+  switch (k){
+  case direct:
+    sprintf(s, "direct");
+    break;
+  case roaming:
+    sprintf(s, "roaming");
+    break;
+  case radical:
+    sprintf(s, "radical");
+    break;
+  case nothing:
+    sprintf(s, "nothing");
+    break;
+  default:
+    sprintf(s, "error");
+    break;
+  }
+
+  return s;
+}
+
+char k2c(geodesicKind k){
+  switch (k){
+  case direct:
+    return 'D';
+    break;
+  case roaming:
+    return 'R';
+    break;
+  case radical:
+    return 'A';
+    break;
+  case nothing:
+    return 'N';
+    break;
+  default:
+    return '0';
+    break;
+  }
+}
+
+
+geodesicKind c2k(char c){
+  switch (c){
+  case 'D': /* exclicit fallthrough */
+  case 'd':
+    return direct;
+    break;
+  case 'R': /* exclicit fallthrough */
+  case 'r':
+    return roaming;
+    break;
+  case 'A': /* exclicit fallthrough */
+  case 'a':
+    return radical;
+    break;
+  case 'N': /* exclicit fallthrough */
+  case 'n':
+  default:
+    return nothing;
+    break;
+  }
 }

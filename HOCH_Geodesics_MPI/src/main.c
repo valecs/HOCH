@@ -42,6 +42,9 @@ void writeRoute(llist * route);
 void writePath(FILE * s, llist * p);
 void * printVectorM(void * e);
 void getTaskFromFile(const char * fname);
+void parseTask(char * out);
+void parseArgs(int argc, char ** argv);
+void state(void);
 
 void msg(const char * s);
 void * printVectorM(void * e);
@@ -65,86 +68,7 @@ int main(int argc, char ** argv){
     exit(1);
   }
 
-  {
-    char loadFile[BUF] = {0};
-    int c = 1;
-    opterr = 0;  //since we do our own error-handling
-    const char optstring[]="+e:hDRAF:G";
-    while (-1 != (c = getopt(argc, argv, optstring))){
-      switch (c){
-      case 'e':
-	errno = 0;
-	p.E0 = (int) strtol(optarg, (char **) (NULL), 10);
-	if (errno){
-	  msg("Cannot read energy; exiting!\n");
-	  exit(1);
-	}
-	break;
-      case 'D':
-	p.kind = direct;
-	break;
-      case 'R':
-	p.kind = roaming;
-	break;
-      case 'A':
-	p.kind = radical;
-	break;
-      case 'F':
-	strncpy(loadFile, optarg, BUF);
-	if ('\0' != loadFile[BUF-1]){
-	  msg(optarg);
-	  msg("File argument longer than BUF; exiting!");
-	  exit(1);
-	}
-	break;
-      case 'G':
-	{	  
-	  const char ** v = arrayEnvVarList;
-	  for (; *v; v++){
-	    char * envvar = getenv(*v);
-	    if (!envvar){
-	      continue;
-	    }
-	  
-	    errno = 0;
-	    p.manifestID = (int) strtol(envvar, (char **) (NULL), 10);
-	    if (errno){
-	      msg(*v);
-	      msg("Cannot read variable; exiting!");
-	      exit(1);
-	    }
-	    else{
-	      break;
-	    }
-	  }
-	  if (!*v){
-	    msg("No task variables found; exiting!");
-	    exit(1);
-	  }
-	}
-	break;
-      case 'h':
-	usage();
-	exit(0);
-	break;
-      case '?':
-	msg("Bad argument; exiting!\n");
-	exit(1);
-	break;
-      default:
-	msg("Internal error; exiting!");
-	exit(1);
-	break;
-      }
-    }
-    if (loadFile[0]){
-      /*
-	getTaskFromFile requires that p.manifestID be set so wait
-	until other options are processed.
-      */
-      getTaskFromFile(loadFile);
-    }
-  }
+  parseArgs(argc, argv);
   
   // Validate parameters
   if (nothing == p.kind ||
@@ -155,11 +79,12 @@ int main(int argc, char ** argv){
     exit(1);
   }
 
+  //state();
+
   const int E0 = p.E0;
   const geodesicKind kind = p.kind;
   
   struct pointsHolder points = loadEndPoints();
-
   setCM(points);
   
   llist * route = NULL;
@@ -211,12 +136,21 @@ void usage(void){
   fprintf(stderr, "  -R Roaming\n");
   fprintf(stderr, "  -A rAdical\n");
   fprintf(stderr, "The optional flag, -F causes jobs to be read from TASKFILE. -t or -G\n");
-  fprintf(stderr, "  are still required.\n");
+  fprintf(stderr, "  are still required. Tasks can either be of the form:\n");
+  fprintf(stderr, "    TASK_ID\n");
+  fprintf(stderr, "  or\n");
+  fprintf(stderr, "    TASK_ID KIND ENERGY\n");
+  fprintf(stderr, "  Parameters specified in the TASKFILE override arguments to the\n");
+  fprintf(stderr, "  program.\n");
   fprintf(stderr, "Requres the variable " STRATT_ROOT " be set.\n");
 }
 
 void msg(const char * s){
   fprintf(stderr, "%05d %c : %s\n", p.manifestID, k2c(p.kind), s);
+}
+
+void state(void){
+  fprintf(stderr, "%05d %c %05d\n", p.manifestID, k2c(p.kind), p.E0);
 }
 
 void setCM(struct pointsHolder points){
@@ -236,11 +170,94 @@ struct pointsHolder loadEndPoints(void){
   return points;
 }
 
+void parseArgs(int argc, char ** argv){
+  char loadFile[BUF] = {0};
+  int c = 1;
+  opterr = 0;  //since we do our own error-handling
+  const char optstring[]="+e:hDRAF:G";
+  while (-1 != (c = getopt(argc, argv, optstring))){
+    switch (c){
+    case 'e':
+      errno = 0;
+      p.E0 = (int) strtol(optarg, (char **) (NULL), 10);
+      if (errno){
+	msg("Cannot read energy; exiting!\n");
+	exit(1);
+      }
+      break;
+    case 'D':
+      p.kind = direct;
+      break;
+    case 'R':
+      p.kind = roaming;
+      break;
+    case 'A':
+      p.kind = radical;
+      break;
+    case 'F':
+      strncpy(loadFile, optarg, BUF);
+      if ('\0' != loadFile[BUF-1]){
+	msg(optarg);
+	msg("File argument longer than BUF; exiting!");
+	exit(1);
+      }
+      break;
+    case 'G':
+      {	  
+	const char ** v = arrayEnvVarList;
+	for (; *v; v++){
+	  char * envvar = getenv(*v);
+	  if (!envvar){
+	    continue;
+	  }
+	  
+	  errno = 0;
+	  p.manifestID = (int) strtol(envvar, (char **) (NULL), 10);
+	  if (errno){
+	    msg(*v);
+	    msg("Cannot read variable; exiting!");
+	    exit(1);
+	  }
+	  else{
+	    break;
+	  }
+	}
+	if (!*v){
+	  msg("No task variables found; exiting!");
+	  exit(1);
+	}
+      }
+      break;
+    case 'h':
+      usage();
+      exit(0);
+      break;
+    case '?':
+      msg("Bad argument; exiting!\n");
+      exit(1);
+      break;
+    default:
+      msg("Internal error; exiting!");
+      exit(1);
+      break;
+    }
+  }
+  if (loadFile[0]){
+    /*
+      getTaskFromFile requires that p.manifestID be set so wait
+      until other options are processed.
+    */
+    getTaskFromFile(loadFile);
+  }
+}
+
 /*
-  Set a new manifestID by reading the manifestID-th line from the file at path fname.
-  Clearly, this requires that manifestID already be set. 
+  Set a new manifestID, kind, and energy by reading the manifestID-th
+  line from the file at path fname.  Clearly, this requires that
+  manifestID already be set.
 */
 void getTaskFromFile(const char * fname){
+  
   FILE * f;
   f = fopen(fname, "r");
   if (!f){
@@ -248,31 +265,69 @@ void getTaskFromFile(const char * fname){
     msg("FAILURE_READ_OPEN");
     exit(1);
   }
-  
+
   char in[BUF];
   char out[BUF];
   int j = 0;
   int lines = p.manifestID;
-  while (0 != fread(in, sizeof(char), BUF, f) && lines > 0){
-    for(char * i = &in[0]; i < &in[BUF]; i++){
+  while (lines > 0 && 0 != fread(in, sizeof(char), BUF, f)){
+    for(char * i = in; i < in + BUF ; i++){
+      /*
+	if *this* is our line,
+	copy to output buffer
+      */
       if (1 == lines){
 	out[j++] = (*i);
       }
 
       if (j >= BUF){
-	msg("length error");
-	return;
+	msg(fname);
+	msg("Buffer error while reading task.");
+	exit(1);
+	break;
       }
-
+      
+      /*
+	decrement lines on each '\n'
+	if we hit 0, read out that line
+      */
       if ('\n' == (*i) && !--lines){
-	  out[j-1] = '\0';
-	  p.manifestID = atoi(out);
-	  break;
+	out[j-1] = '\0';
+	parseTask(out);
+	break;
       }
     }
   }
 
   fclose(f);
+}
+
+
+/*
+  Helper-function for getTaskFromFile
+*/
+void parseTask(char * out){
+  const char delim[] = " \t";
+  char * tok;
+
+  if (!(tok = strtok(out, delim))){return;}
+  errno = 0;
+  p.manifestID = (int) strtol(tok, (char **) NULL, 10);
+  if (errno){
+    msg("Cannot parse ID; exiting!\n");
+    exit(1);
+  }
+	  
+  if (!(tok = strtok(NULL, delim))){return;}
+  p.kind = c2k(tok[0]);
+
+  if (!(tok = strtok(NULL, delim))){return;}
+  errno = 0;
+  p.E0 = (int) strtol(tok, (char **) NULL, 10);
+  if (errno){
+    msg("Cannot parse energy; exiting!\n");
+    exit(1);
+  }
 }
 
 void writeRoute(llist * route){
