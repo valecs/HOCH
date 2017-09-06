@@ -44,7 +44,6 @@ void * printVectorM(void * e);
 void getTaskFromFile(const char * fname);
 void parseTask(char * out);
 void parseArgs(int argc, char ** argv);
-void state(void);
 
 void msg(const char * s);
 void * printVectorM(void * e);
@@ -79,7 +78,7 @@ int main(int argc, char ** argv){
     exit(1);
   }
 
-  //state();
+  //msg(""); /* Will dump state info. */
 
   const int E0 = p.E0;
   const geodesicKind kind = p.kind;
@@ -146,11 +145,7 @@ void usage(void){
 }
 
 void msg(const char * s){
-  fprintf(stderr, "%05d %c : %s\n", p.manifestID, k2c(p.kind), s);
-}
-
-void state(void){
-  fprintf(stderr, "%05d %c %05d\n", p.manifestID, k2c(p.kind), p.E0);
+  fprintf(stderr, "%05d %c %05d : %s\n", p.manifestID, k2c(p.kind), p.E0, s);
 }
 
 void setCM(struct pointsHolder points){
