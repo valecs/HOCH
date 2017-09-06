@@ -55,7 +55,7 @@ const char * arrayEnvVarList[] = {
   "SGE_TASK_ID",
   "SLURM_ARRAY_TASK_ID",
   "TASK_ID",
-  NULL
+  NULL /* Null-terminated by requriment */
 };
 
 int main(int argc, char ** argv){
@@ -63,7 +63,7 @@ int main(int argc, char ** argv){
   p.manifestID = getTaskID(&argc, argv);
       
   if (!p.stratt_root){
-    msg("Variable, " STRATT_ROOT ", not found; exiting!\n");
+    msg("Variable, " STRATT_ROOT ", not found; exiting!");
     exit(1);
   }
 
@@ -78,7 +78,7 @@ int main(int argc, char ** argv){
     exit(1);
   }
 
-  //msg(""); /* Will dump state info. */
+  //msg(""); /* Dump state info. */
 
   const int E0 = p.E0;
   const geodesicKind kind = p.kind;
@@ -176,7 +176,7 @@ void parseArgs(int argc, char ** argv){
       errno = 0;
       p.E0 = (int) strtol(optarg, (char **) (NULL), 10);
       if (errno){
-	msg("Cannot read energy; exiting!\n");
+	msg("Cannot read energy; exiting!");
 	exit(1);
       }
       break;
@@ -228,7 +228,7 @@ void parseArgs(int argc, char ** argv){
       exit(0);
       break;
     case '?':
-      msg("Bad argument; exiting!\n");
+      msg("Bad argument; exiting!");
       exit(1);
       break;
     default:
@@ -309,7 +309,7 @@ void parseTask(char * out){
   errno = 0;
   p.manifestID = (int) strtol(tok, (char **) NULL, 10);
   if (errno){
-    msg("Cannot parse ID; exiting!\n");
+    msg("Cannot parse ID; exiting!");
     exit(1);
   }
 	  
@@ -320,7 +320,7 @@ void parseTask(char * out){
   errno = 0;
   p.E0 = (int) strtol(tok, (char **) NULL, 10);
   if (errno){
-    msg("Cannot parse energy; exiting!\n");
+    msg("Cannot parse energy; exiting!");
     exit(1);
   }
 }
