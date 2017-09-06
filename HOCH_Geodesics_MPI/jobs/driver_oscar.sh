@@ -13,8 +13,9 @@ echo "Launching $K, E = $E"
 sleep 2s;
 cd "$OUT"
 
-
-for start in 5001
+# have done
+# 41010 R 5001
+for start in 6001
 do
     export MY_ARRAY_START=$((start -1))
 
