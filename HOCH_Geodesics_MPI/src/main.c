@@ -78,7 +78,8 @@ int main(int argc, char ** argv){
     exit(1);
   }
 
-  //msg(""); /* Dump state info. */
+  /* Dump state info. */
+  msg("BEGIN");
 
   const int E0 = p.E0;
   const geodesicKind kind = p.kind;
