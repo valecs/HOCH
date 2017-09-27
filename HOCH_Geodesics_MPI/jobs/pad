@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -euo pipefail
+
+## 00001 -> 00001 $K $E
+
+readonly E=$1
+readonly K=$2
+
+case $K in
+    [DAR])
+    ;;
+    *)
+	echo "invalid kind, \$2=$K; exiting!"
+	exit 1
+esac
+
+awk "{ print \$1,\"$K\",$E }" <&0

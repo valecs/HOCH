@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -euo pipefail
+
+## no flags :  00001 A 37600 : SUCCESS -> 00001 A 37600
+## with -1  :  00001 A 37600 : SUCCESS -> 00001
+
+readonly flag="${1:-null}"
+
+if [ "-1" = "$flag" ]
+then
+    awk '{ print $1 }' <&0
+else
+    awk '{ print $1,$2,$3 }' <&0
+fi
