@@ -15,6 +15,7 @@ cd "$OUT"
 
 # have done
 # 41010 R 5001
+# 41010 R 6001
 for start in 6001
 do
     export MY_ARRAY_START=$((start -1))
