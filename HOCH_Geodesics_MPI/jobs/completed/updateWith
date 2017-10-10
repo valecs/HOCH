@@ -11,7 +11,7 @@ then
     cat "$1"/* | grep SUCCESS | ../strip > "$F"
 elif [ -f "$1" ]
 then
-    cp "$1" "$F"
+    grep SUCCESS "$1" | ../strip > "$F"
 else
     echo "$1 is not a file or directory; exiting!"
     exit 1
