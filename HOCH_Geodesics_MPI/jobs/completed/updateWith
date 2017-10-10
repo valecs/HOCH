@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# given a file (or directory) as an argument, will update the current DB
+
+readonly F=$(mktemp)
+
+if [ -d "$1" ]
+then
+    cat "$1"/* | grep SUCCESS | ../strip > "$F"
+elif [ -f "$1" ]
+then
+    cp "$1" "$F"
+else
+    echo "$1 is not a file or directory; exiting!"
+    exit 1
+fi
+
+
+for E in $(cat ENERGIES)
+do
+    for K in D A R
+    do
+	echo "$E" $K;
+	awk "\$3==$E && \$2==\"$K\"" < "$F" >> "$E.$K.done"
+	./uniqus "$E.$K.done"
+    done
+done
+
+rm "$F"

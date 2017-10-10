@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# given a 'done' manifest on stdin and an integer argument, prints the
+# remaining jobs to get everything up to and including that number
+
+readonly N=$1
+readonly M="${2:-}"
+
+AWKCMD="\$1<=$N"
+
+if [ "$M" ]
+then
+    AWKCMD="\$1>=$N && \$1<=$M"
+fi
+
+sort <(awk "$AWKCMD" <&0 | ../strip -1) <(seq -f "%05g" $N $M) | uniq -u

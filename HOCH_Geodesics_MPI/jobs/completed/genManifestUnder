@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# given a 'done' manifest on stdin and an integer argument, prints the
+# remaining jobs to get everything up to and including that number
+
+readonly N=$1
+readonly M="${2:-}"
+
+{
+    for E in $(cat ENERGIES)
+    do
+	for K in D A R
+	do
+	    ./neededUnder $N $M < $E.$K.done | ../pad $E $K
+	    echo $E $K $(./neededUnder $N $M < $E.$K.done | wc -l) >&2
+	done
+    done
+} | sort

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# given a file as input, rewrites the file with only unique lines
+
+if [ ! -f "$1" ]
+then
+    echo "$1 is not a file; exiting!"
+    exit 1
+fi
+
+readonly F="$1"
+
+TMP=$(mktemp)
+
+../strip < "$F"| sort | uniq > "$TMP"
+
+wc -l "$F"
+wc -l "$TMP"
+
+mv "$TMP" "$F"
