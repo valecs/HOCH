@@ -3,33 +3,43 @@ set -euo pipefail
 
 readonly R=$(dirname "$(readlink -f "$0")")
 
-readonly E="$1"
-readonly K="$2"
-shift 2
+if [ ! -f "$1" ]
+then
+    echo "$1 is not a file; exiting!"
+    exit 1
+fi
 
-readonly OUT="$R/$E/slurm"
- 
-echo "Launching $K, E = $E"
+readonly F=$(readlink -f "$1")
+
+readonly suffix=$(basename $F)
+
+shift 1
+
+readonly OUT="$R/mixed/slurm"
+
+readonly N=$(wc -l < "$F")
+
+echo "Have $N in $F"
+
+echo "Launching mixed job: $F, have $N"
 sleep 2s;
+
 cd "$OUT"
 
-# have done
-# 41010 R 5001
-# 41010 R 6001
-for start in 6001
+for start in $(seq 1 1000 $N)
 do
     export MY_ARRAY_START=$((start -1))
+    echo "launching $MY_ARRAY_START"
+    sleep 4s
 
     sbatch --array=1-1000 --workdir="$OUT" --hint=compute_bound\
-	   --job-name "HOCH$E$K" --time 8-0 --mem-per-cpu=512 $@ <<EOF
+	   --job-name "HOCH-$suffix-$MY_ARRAY_START" --time 2-0 --mem-per-cpu=256 "$@" <<EOF
 #!/bin/bash
 SLURM_ARRAY_TASK_ID="\$((SLURM_ARRAY_TASK_ID + MY_ARRAY_START))"
 export SLURM_ARRAY_TASK_ID
-srun $(readlink -f $R/../../shared/bin/HOCH_Geodesics_MPI) -e $E -G -$K
+srun $(readlink -f $R/../../shared/bin/HOCH_Geodesics_MPI) -G -F $F
 EOF
-    
 done
-## R.B. Ted jobs did 1-5000 and 25001-30000
 
 cd -
 
