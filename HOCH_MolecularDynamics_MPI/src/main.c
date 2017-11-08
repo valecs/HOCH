@@ -51,7 +51,7 @@ int main(int argc, char ** argv){
     exit(1);
   }
   
-  int trajectory = getTaskID(argc, argv);
+  int trajectory = getTaskID('t', &argc, argv);
   
   int E0 = -1;
   
@@ -259,5 +259,5 @@ void usage(char * cmd){
   printf("  ENERGY :   energy of trajectory in wavenumbers.\n");
   printf("  n-m:       range of initial conditions to generate trajectories over; [n,m].\n");
   printf("\n");
-  printf("Initial conditions for ENERGY and RUN must exist in ./initial \n");
+  printf("Initial conditions for ENERGY and RUN must exist in $" STRATT_ROOT ".\n");
 }
