@@ -34,6 +34,14 @@ int odefunc_hcoh(double t, const double x[], double f[], void * params);
 double dist_H2_CO(gsl_vector * x, gsl_vector * mass);
 void usage(char * cmd);
 
+/* List of possible env vars to look-up*/
+const char * arrayEnvVarList[] = {
+  "SGE_TASK_ID",
+  "SLURM_ARRAY_TASK_ID",
+  "TASK_ID",
+  NULL /* Null-terminated by requriment */
+};
+
 int main(int argc, char ** argv){
   const energy potential_energy = hochPotential -> v;
   static const size_t dim = 12;
@@ -45,11 +53,6 @@ int main(int argc, char ** argv){
     fprintf(stderr, "Variable, " STRATT_ROOT ", not found; exiting!\n");
     exit(1);
   }
-
-  if (5 != argc){
-    usage(argv[0]);
-    exit(1);
-  }
   
   int trajectory = getTaskID('t', &argc, argv);
   
@@ -57,7 +60,7 @@ int main(int argc, char ** argv){
   
   int c = 1;
   opterr = 0;  //since we do our own error-handling
-  const char optstring[]="+e:h";
+  const char optstring[]="+e:Gh";
   while (-1 != (c = getopt(argc, argv, optstring))){
     switch (c){
     case 'e':
@@ -71,11 +74,40 @@ int main(int argc, char ** argv){
       fprintf(stderr, "Bad argument; exiting!\n");
       exit(1);
       break;
+    case 'G':
+      {
+	const char ** v = arrayEnvVarList;
+	for (; *v; v++){
+	  char * envvar = getenv(*v);
+	  if (!envvar){
+	    continue;
+	  }
+	  errno = 0;
+	  trajectory += (int) strtol(envvar, (char **) (NULL), 10);
+	  if (errno){
+	    fprintf(stderr, "Cannot read variable $%s; exiting!\n", *v);
+	    exit(1);
+	  }
+	  else{
+	    break;
+	  }
+	}
+	if (!*v){
+	  fprintf(stderr,"No task variables found; exiting!\n");
+	  exit(1);
+	}
+      }
+      break;
     default:
-      fprintf(stderr, "Internal error; exiting!");
+      fprintf(stderr, "Internal error; exiting!\n");
       exit(1);
       break;
     }
+  }
+
+  if (!(trajectory > 0)){
+    usage(argv[0]);
+    exit(1);
   }
 
   char fname[BUF];
@@ -161,7 +193,7 @@ int main(int argc, char ** argv){
     fprintf(stderr, "Output truncated; exiting!\n");
     exit(2);
   }
-
+  
   f = fopen(fname, "w");
   if (!f){
     fprintf(stderr, "Unable to write to timeseries, %s; exiting!\n", fname);
@@ -255,9 +287,13 @@ int odefunc_hcoh(double t, const double x[], double f[], void * params){
 }
 
 void usage(char * cmd){
-  printf("Usage: %s -e ENERGY -t n-m \n",cmd);
+  printf("Usage: %s -e ENERGY {-t n-m |-G} \n",cmd);
   printf("  ENERGY :   energy of trajectory in wavenumbers.\n");
   printf("  n-m:       range of initial conditions to generate trajectories over; [n,m].\n");
+  printf("  With -G, will opperate in Grid mode and read tasks via one of:\n");
+  for (const char ** v = arrayEnvVarList; *v; v++){
+    printf("    $%s\n", *v);
+  }
   printf("\n");
   printf("Initial conditions for ENERGY and RUN must exist in $" STRATT_ROOT ".\n");
 }
