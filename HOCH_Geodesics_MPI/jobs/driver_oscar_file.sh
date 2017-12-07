@@ -30,9 +30,16 @@ for start in $(seq 1 1000 $N)
 do
     export MY_ARRAY_START=$((start -1))
     echo "launching $MY_ARRAY_START"
-    sleep 4s
+    #sleep 4s
 
-    sbatch --array=1-1000 --workdir="$OUT" --hint=compute_bound\
+    if [ "$(((N/1000)*1000))" -eq "$MY_ARRAY_START" ]
+    then
+	M=$((N-MY_ARRAY_START))
+    else
+	M=1000
+    fi
+    
+    sbatch --array=1-$M --workdir="$OUT" --hint=compute_bound\
 	   --job-name "HOCH-$suffix-$MY_ARRAY_START" --time 2-0 --mem-per-cpu=256 "$@" <<EOF
 #!/bin/bash
 SLURM_ARRAY_TASK_ID="\$((SLURM_ARRAY_TASK_ID + MY_ARRAY_START))"
