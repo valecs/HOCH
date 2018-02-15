@@ -9,7 +9,7 @@ readonly F=$(mktemp)
 if [ -d "$1" ]
 then
     # changed this from `cat "$1"/* | ...` when the directories got too big
-    find "$1" -maxdepth 1 -type f -print0 | xargs -0 -n 127 cat | grep SUCCESS | ../strip > "$F"
+    find "$1" -maxdepth 1 -type f -print0 | xargs -0 -n 1023 cat | grep -h SUCCESS | ../strip > "$F"
 elif [ -f "$1" ]
 then
     grep SUCCESS "$1" | ../strip > "$F"
